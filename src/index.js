@@ -1,152 +1,174 @@
 const inputText = document.getElementById("textNewTodo");
-const todoItemsEl = document.querySelector(".todo-items");
+const undoItemsEl = document.querySelector(".undo-items");
 const completeItemsEl = document.querySelector(".complete-items");
 const addBtn = document.getElementById("add-btn");
 
-let todoListArray = [];
+let undoListArray = [];
 let completeListArray = [];
+let isCompleted = false;
 
-// Move to Complete Container
-function goToCompleteList(index) {
-  const moveList = todoListArray[index];
-  // Delete from todoListArray
-  todoListArray = todoListArray.filter((todoList) => todoList !== moveList);
-  // Add to completeListArray
-  completeListArray.push(moveList);
-  localStorage.setItem("todoListArray", JSON.stringify(todoListArray));
+// Store to Local Storage
+function storeArraysInLocalStorage() {
+  localStorage.setItem("undoListArray", JSON.stringify(undoListArray));
   localStorage.setItem("completeListArray", JSON.stringify(completeListArray));
-  // Update DOM
-  todoItemsEl.textContent = "";
+}
+
+// Update DOM
+function updateDOM() {
+  undoItemsEl.textContent = "";
   completeItemsEl.textContent = "";
+  storeArraysInLocalStorage();
   showTodoLists();
+}
+
+// If array equal completeListArray, isCompleted turn to true
+function checkArray(array) {
+  if (JSON.stringify(array) == JSON.stringify(completeListArray)) {
+    isCompleted = true;
+  } else {
+    isCompleted = false;
+  }
 }
 
 // Delete TODO Item
-function deleteTodoItem(index) {
-  const deleteList = todoListArray[index];
-  // Delete from todoListArray
-  todoListArray = todoListArray.filter((todoList) => todoList !== deleteList);
-  localStorage.setItem("todoListArray", JSON.stringify(todoListArray));
-  // Update DOM
-  todoItemsEl.textContent = "";
-  showTodoLists();
+function deleteTodoItem(index, targetArray) {
+  checkArray(targetArray);
+  const deleteList = targetArray[index];
+  // Delete from targetArray
+  targetArray = targetArray.filter((todoList) => todoList !== deleteList);
+  // Update Local Storage
+  if (!isCompleted) {
+    undoListArray = targetArray;
+  } else {
+    completeListArray = targetArray;
+  }
+  // Update LocalStorage and DOM
+  updateDOM();
 }
 
-// Create NEW TODO DOM
-function createNewTodoDOM(text, index) {
-  // Create new Todo item
-  const newTodo = document.createElement("li");
-  newTodo.classList.add("list-group-item");
+function moveToOtherList(index, currentArray, nextArray) {
+  checkArray(currentArray);
+  const moveList = currentArray[index];
+  // Delete from currentArray
+  currentArray = currentArray.filter((todoList) => todoList != moveList);
+  // Add to nextArray
+  nextArray.push(moveList);
+  if (!isCompleted) {
+    undoListArray = currentArray;
+    completeListArray = nextArray;
+  } else {
+    undoListArray = nextArray;
+    completeListArray = currentArray;
+  }
+  // Update LocalStorage and DOM
+  updateDOM();
+}
+
+// Update Todo Item Text
+function updateItem(index, targetArray) {
+  checkArray(targetArray);
+  const targetEl = isCompleted ? completeItemsEl : undoItemsEl;
+  const text = targetEl.children[index].children[0].textContent;
+  if (!text) {
+    deleteTodoItem(index, targetArray);
+  } else {
+    targetArray[index] = text;
+  }
+  updateDOM();
+}
+
+// Create TODO DOM
+function createTodoDOM(text, index, currentArray, nextArray) {
+  checkArray(currentArray);
+  // Create  Todo List
+  const todoList = document.createElement("li");
+  todoList.classList.add("list-group-item");
   const todoText = document.createElement("span");
   todoText.textContent = text;
-  todoText.classList.add("todo-item");
-  // Create Buttons
-  const completeBtn = document.createElement("button");
-  completeBtn.type = "button";
-  completeBtn.classList.add("complete-btn");
-  completeBtn.textContent = "完了";
-  completeBtn.setAttribute("onclick", `goToCompleteList(${index})`);
+  todoText.setAttribute("contenteditable", "true");
+  // Create Move Button
+  const moveBtn = document.createElement("button");
+  moveBtn.type = "button";
+  // Create Delete Button
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
   deleteBtn.classList.add("delete-btn");
   deleteBtn.textContent = "削除";
-  deleteBtn.setAttribute("onclick", `deleteTodoItem(${index})`);
+
+  // Add class and select target element
+  let targetEl = "";
+  if (!isCompleted) {
+    todoText.setAttribute("onfocusout", `updateItem(${index}, undoListArray)`);
+    moveBtn.textContent = "完了";
+    moveBtn.classList.add("complete-btn");
+    moveBtn.setAttribute(
+      "onclick",
+      `moveToOtherList(${index}, undoListArray, completeListArray)`
+    );
+    deleteBtn.setAttribute(
+      "onclick",
+      `deleteTodoItem(${index}, undoListArray)`
+    );
+    targetEl = undoItemsEl;
+  } else {
+    todoText.setAttribute(
+      "onfocusout",
+      `updateItem(${index}, completeListArray)`
+    );
+    moveBtn.textContent = "戻る";
+    moveBtn.classList.add("return-btn");
+    moveBtn.setAttribute(
+      "onclick",
+      `moveToOtherList(${index}, completeListArray, undoListArray)`
+    );
+    deleteBtn.setAttribute(
+      "onclick",
+      `deleteTodoItem(${index}, completeListArray)`
+    );
+    targetEl = completeItemsEl;
+  }
+
   // Append
-  newTodo.append(todoText, completeBtn, deleteBtn);
-  todoItemsEl.appendChild(newTodo);
-}
-
-// Delete Complete TODO Item
-function deleteCompleteTodoItem(index) {
-  const deleteList = completeListArray[index];
-  // Delete from todoListArray
-  completeListArray = completeListArray.filter(
-    (completeList) => completeList !== deleteList
-  );
-  localStorage.setItem("completeListArray", JSON.stringify(completeListArray));
-  // Update DOM
-  completeItemsEl.textContent = "";
-  showTodoLists();
-}
-
-// Return todo items Container
-function returnTodoList(index) {
-  const moveList = completeListArray[index];
-  // Delete from completeListArray
-  completeListArray = completeListArray.filter(
-    (completeList) => completeList !== moveList
-  );
-  // Add to completeListArray
-  todoListArray.push(moveList);
-  localStorage.setItem("todoListArray", JSON.stringify(todoListArray));
-  localStorage.setItem("completeListArray", JSON.stringify(completeListArray));
-  // Update DOM
-  todoItemsEl.textContent = "";
-  completeItemsEl.textContent = "";
-  showTodoLists();
-}
-
-// Create Complete TODO DOM
-function createCompleteTodoDOM(text, index) {
-  // Create Complete Todo item
-  const completeTodo = document.createElement("li");
-  completeTodo.classList.add("list-group-item");
-  const todoText = document.createElement("span");
-  todoText.textContent = text;
-  todoText.classList.add("todo-item");
-  // Create Buttons
-  const returnBtn = document.createElement("button");
-  returnBtn.type = "button";
-  returnBtn.classList.add("return-btn");
-  returnBtn.textContent = "戻る";
-  returnBtn.setAttribute("onclick", `returnTodoList(${index})`);
-  const deleteBtn = document.createElement("button");
-  deleteBtn.type = "button";
-  deleteBtn.classList.add("delete-btn");
-  deleteBtn.textContent = "削除";
-  deleteBtn.setAttribute("onclick", `deleteCompleteTodoItem(${index})`);
-  // Append
-  completeTodo.append(todoText, returnBtn, deleteBtn);
-  completeItemsEl.appendChild(completeTodo);
+  todoList.append(todoText, moveBtn, deleteBtn);
+  targetEl.appendChild(todoList);
 }
 
 // Create New Todo Item
-function createNewTodo() {
+function createNewTodoList() {
   const text = inputText.value;
-  let todoListIndex = 0;
-  // Add Item to todoListArray
-  todoListArray.push(text);
-  // Get Index from todoListArray
-  todoListArray.forEach((item, index) => {
-    if (item === text) {
-      todoListIndex = index;
-    }
-  });
-  createNewTodoDOM(text, todoListIndex);
-  // Save Todo List to Local Storage
-  localStorage.setItem("todoListArray", JSON.stringify(todoListArray));
+  if (!text) {
+    window.alert("Please input TODO LIST!");
+    return;
+  }
+  // Add Item to undoListArray
+  undoListArray.push(text);
+  // Get Index from undoListArray
+  const undoListIndex = undoListArray.length - 1;
+  createTodoDOM(text, undoListIndex, undoListArray, completeListArray);
+  // Save undoListArray to Local Storage
+  localStorage.setItem("undoListArray", JSON.stringify(undoListArray));
   // Delete InputBox Text
   inputText.value = "";
 }
 
 // Check LocalStorage, if todo list exits, show todo items
 function showTodoLists() {
-  if (localStorage.getItem("todoListArray")) {
-    todoListArray = JSON.parse(localStorage.getItem("todoListArray"));
-    todoListArray.forEach((todoList, index) => {
-      createNewTodoDOM(todoList, index);
+  if (localStorage.getItem("undoListArray")) {
+    undoListArray = JSON.parse(localStorage.getItem("undoListArray"));
+    undoListArray.forEach((todoList, index) => {
+      createTodoDOM(todoList, index, undoListArray, completeListArray);
     });
   }
   if (localStorage.getItem("completeListArray")) {
     completeListArray = JSON.parse(localStorage.getItem("completeListArray"));
     completeListArray.forEach((completeList, index) => {
-      createCompleteTodoDOM(completeList, index);
+      createTodoDOM(completeList, index, completeListArray, undoListArray);
     });
   }
 }
 
 // Event Listener
-addBtn.addEventListener("click", () => createNewTodo());
+addBtn.addEventListener("click", () => createNewTodoList());
 
 // On Load
 showTodoLists();
