@@ -59,6 +59,7 @@ input {
   margin: 0 10px;
   border: none;
   border-radius: 5px;
+  font-size: 1.8rem;
 }
 
 .unfinished-items-container {
