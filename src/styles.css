@@ -62,7 +62,7 @@ input {
   font-size: 1.8rem;
 }
 
-.unfinished-items-container {
+.todo-items-container {
   width: 95%;
   background: #ada996;
   color: #fafafa;
@@ -70,7 +70,7 @@ input {
   margin: 15px 0;
 }
 
-.finished-items-container {
+.complete-items-container {
   width: 95%;
   background: #f2f2f2;
   border-radius: 5px;
@@ -97,20 +97,20 @@ button:focus {
   outline: none;
 }
 
-.add-button {
+.add-btn {
   color: #fafafa;
   background: #d76d77;
 }
 
-.done-button {
+.complete-btn {
   background: #ffaf7b;
 }
 
-.delete-button {
-  background: #eaeaea;
+.delete-btn {
+  background: #a1a1a1;
 }
 
-.return-button {
+.return-btn {
   color: #fafafa;
   background: #3a1c71;
 }

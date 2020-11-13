@@ -12,29 +12,20 @@
 
       <!-- Add New Todo List Item -->
       <div class="add-new-item-container">
-        <input type="text" />
-        <button type="button" class="btn add-button">追加</button>
+        <input type="text" id="textNewTodo" />
+        <button type="button" class="btn add-btn" id="add-btn">追加</button>
       </div>
 
-      <!-- Unfinished Items -->
-      <div class="unfinished-items-container">
+      <!-- todo Items -->
+      <div class="todo-items-container">
         <h2>未完了のTODO</h2>
-        <ul class="list-group unfinished-items"></ul>
+        <ul class="list-group todo-items"></ul>
       </div>
 
-      <!-- Finished Items -->
-      <div class="mb-3 finished-items-container">
+      <!-- complete Items -->
+      <div class="complete-items-container">
         <h2>完了したTODO</h2>
-        <ul class="list-group finished-items">
-          <li class="list-group-item">
-            <span class="todo-item">Porta ac consectetur ac</span>
-            <button type="button" class="btn return-button">戻す</button>
-          </li>
-          <li class="list-group-item">
-            <span class="todo-item">Vestibulum at eros</span>
-            <button type="button" class="btn return-button">戻す</button>
-          </li>
-        </ul>
+        <ul class="list-group complete-items"></ul>
       </div>
     </div>
 
